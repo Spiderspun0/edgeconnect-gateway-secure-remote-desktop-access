@@ -28,32 +28,36 @@ export class GlobalDurableObject extends DurableObject {
       await this.ctx.storage.put("remote_machines", updated);
       return updated;
     }
-    // Session Management
     async getActiveSessions(): Promise<RemoteSession[]> {
       const sessions = await this.ctx.storage.get("active_sessions");
       return (sessions as RemoteSession[]) || [];
     }
     async startSession(machineId: string): Promise<RemoteSession> {
       const sessions = await this.getActiveSessions();
+      const sessionId = crypto.randomUUID();
       const newSession: RemoteSession = {
-        id: crypto.randomUUID(),
+        id: sessionId,
         machineId,
         startTime: new Date().toISOString(),
         status: 'connecting',
         latency: Math.floor(Math.random() * 50) + 10,
       };
       await this.ctx.storage.put("active_sessions", [...sessions, newSession]);
-      // Update machine status
       await this.updateRemoteMachine(machineId, { status: 'connecting' });
-      // Simulate connection progress
-      setTimeout(async () => {
+      // We use a waitUntil-like pattern to finalize the session connection
+      // in a simulated background process.
+      this.ctx.waitUntil((async () => {
+        await new Promise(resolve => setTimeout(resolve, 1500));
         const currentSessions = await this.getActiveSessions();
-        const updatedSessions = currentSessions.map(s => 
-          s.id === newSession.id ? { ...s, status: 'active' as const } : s
+        const updatedSessions = currentSessions.map(s =>
+          s.id === sessionId ? { ...s, status: 'active' as const } : s
         );
         await this.ctx.storage.put("active_sessions", updatedSessions);
-        await this.updateRemoteMachine(machineId, { status: 'online' });
-      }, 2000);
+        await this.updateRemoteMachine(machineId, { 
+          status: 'online',
+          lastConnected: new Date().toISOString() 
+        });
+      })());
       return newSession;
     }
     async endSession(sessionId: string): Promise<void> {

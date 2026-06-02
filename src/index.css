@@ -13,7 +13,7 @@
     --input: 214.3 31.8% 91.4%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-    --radius: 0.75rem;
+    --radius: 1.25rem;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
   }
@@ -43,6 +43,35 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-cf-blue-500 to-cf-blue-700;
   }
   .glass-card {
-    @apply bg-card/80 backdrop-blur-sm border border-border shadow-sm;
+    @apply bg-card/80 backdrop-blur-md border border-border/50 shadow-sm;
   }
+  .glow-pulse {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    animation: glow-pulse-anim 2s infinite ease-in-out;
+  }
+  .scanline {
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(59, 130, 246, 0.05) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 5;
+    animation: scanline-anim 10s linear infinite;
+  }
+}
+@keyframes glow-pulse-anim {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.4); border-color: rgba(59, 130, 246, 0.6); }
+}
+@keyframes scanline-anim {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

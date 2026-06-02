@@ -12,7 +12,7 @@ const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   host: z.string().min(1, "Host address is required"),
   port: z.coerce.number().int().min(1).max(65535),
-  authMethod: z.enum(['token', 'password'] as const),
+  authMethod: z.enum(['token', 'password']),
   authToken: z.string().min(1, "Authentication detail is required"),
 });
 type FormValues = z.infer<typeof formSchema>;
@@ -34,11 +34,13 @@ export function MachineForm({ initialData, onSubmit, onCancel, isLoading }: Mach
     },
   });
   const handleSubmit = async (values: FormValues) => {
-    await onSubmit({
+    const formattedMachine: RemoteMachine = {
       ...values,
       id: initialData?.id || uuidv4(),
       status: initialData?.status || 'offline',
-    });
+      lastConnected: initialData?.lastConnected,
+    };
+    await onSubmit(formattedMachine);
   };
   return (
     <Form {...form}>
