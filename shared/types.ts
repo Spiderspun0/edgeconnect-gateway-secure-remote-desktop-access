@@ -1,9 +1,13 @@
-export interface DemoItem {
+export interface RemoteMachine {
   id: string;
   name: string;
-  value: number;
+  host: string;
+  port: number;
+  authMethod: 'token' | 'password';
+  authToken: string;
+  status: 'online' | 'offline' | 'connecting';
+  lastConnected?: string;
 }
-
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;

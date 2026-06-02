@@ -1,58 +1,31 @@
 import { DurableObject } from "cloudflare:workers";
-import type { DemoItem } from '@shared/types';
-import { MOCK_ITEMS } from '@shared/mock-data';
-
-// **DO NOT MODIFY THE CLASS NAME**
+import type { RemoteMachine } from '@shared/types';
+import { MOCK_REMOTE_MACHINES } from '@shared/mock-data';
 export class GlobalDurableObject extends DurableObject {
-    async getCounterValue(): Promise<number> {
-      const value = (await this.ctx.storage.get("counter_value")) || 0;
-      return value as number;
-    }
-  
-    async increment(amount = 1): Promise<number> {
-      let value: number = (await this.ctx.storage.get("counter_value")) || 0;
-      value += amount;
-      await this.ctx.storage.put("counter_value", value);
-      return value;
-    }
-  
-    async decrement(amount = 1): Promise<number> {
-      let value: number = (await this.ctx.storage.get("counter_value")) || 0;
-      value -= amount;
-      await this.ctx.storage.put("counter_value", value);
-      return value;
-    }
-
-    async getDemoItems(): Promise<DemoItem[]> {
-      const items = await this.ctx.storage.get("demo_items");
-      if (items) {
-        return items as DemoItem[];
+    async getRemoteMachines(): Promise<RemoteMachine[]> {
+      const machines = await this.ctx.storage.get("remote_machines");
+      if (machines) {
+        return machines as RemoteMachine[];
       }
-      
-      await this.ctx.storage.put("demo_items", MOCK_ITEMS);
-      return MOCK_ITEMS;
+      await this.ctx.storage.put("remote_machines", MOCK_REMOTE_MACHINES);
+      return MOCK_REMOTE_MACHINES;
     }
-
-    async addDemoItem(item: DemoItem): Promise<DemoItem[]> {
-      const items = await this.getDemoItems();
-      const updatedItems = [...items, item];
-      await this.ctx.storage.put("demo_items", updatedItems);
-      return updatedItems;
+    async addRemoteMachine(machine: RemoteMachine): Promise<RemoteMachine[]> {
+      const machines = await this.getRemoteMachines();
+      const updated = [...machines, machine];
+      await this.ctx.storage.put("remote_machines", updated);
+      return updated;
     }
-
-    async updateDemoItem(id: string, updates: Partial<Omit<DemoItem, 'id'>>): Promise<DemoItem[]> {
-      const items = await this.getDemoItems();
-      const updatedItems = items.map(item => 
-        item.id === id ? { ...item, ...updates } : item
-      );
-      await this.ctx.storage.put("demo_items", updatedItems);
-      return updatedItems;
+    async updateRemoteMachine(id: string, updates: Partial<Omit<RemoteMachine, 'id'>>): Promise<RemoteMachine[]> {
+      const machines = await this.getRemoteMachines();
+      const updated = machines.map(m => m.id === id ? { ...m, ...updates } : m);
+      await this.ctx.storage.put("remote_machines", updated);
+      return updated;
     }
-
-    async deleteDemoItem(id: string): Promise<DemoItem[]> {
-      const items = await this.getDemoItems();
-      const updatedItems = items.filter(item => item.id !== id);
-      await this.ctx.storage.put("demo_items", updatedItems);
-      return updatedItems;
+    async deleteRemoteMachine(id: string): Promise<RemoteMachine[]> {
+      const machines = await this.getRemoteMachines();
+      const updated = machines.filter(m => m.id !== id);
+      await this.ctx.storage.put("remote_machines", updated);
+      return updated;
     }
 }

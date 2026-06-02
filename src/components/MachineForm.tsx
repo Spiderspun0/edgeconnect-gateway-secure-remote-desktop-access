@@ -4,8 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import type { RemoteMachine } from '@shared/types';
 import { v4 as uuidv4 } from 'uuid';
 const formSchema = z.object({
@@ -15,7 +16,6 @@ const formSchema = z.object({
   authMethod: z.enum(['token', 'password']),
   authToken: z.string().min(1, "Authentication detail is required"),
 });
-type FormValues = z.infer<typeof formSchema>;
 interface MachineFormProps {
   initialData?: RemoteMachine;
   onSubmit: (data: RemoteMachine) => Promise<void>;
@@ -23,24 +23,22 @@ interface MachineFormProps {
   isLoading?: boolean;
 }
 export function MachineForm({ initialData, onSubmit, onCancel, isLoading }: MachineFormProps) {
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: initialData?.name || '',
-      host: initialData?.host || '',
-      port: initialData?.port || 3389,
-      authMethod: initialData?.authMethod || 'token',
-      authToken: initialData?.authToken || '',
+    defaultValues: initialData || {
+      name: '',
+      host: '',
+      port: 3389,
+      authMethod: 'token',
+      authToken: '',
     },
   });
-  const handleSubmit = async (values: FormValues) => {
-    const formattedMachine: RemoteMachine = {
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    await onSubmit({
       ...values,
       id: initialData?.id || uuidv4(),
       status: initialData?.status || 'offline',
-      lastConnected: initialData?.lastConnected,
-    };
-    await onSubmit(formattedMachine);
+    });
   };
   return (
     <Form {...form}>
