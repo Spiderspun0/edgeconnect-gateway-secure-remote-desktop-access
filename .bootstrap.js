@@ -77,7 +77,11 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [];
+    const commands = [
+    "bun add react-icons@^4.12.0",
+    "bun add @radix-ui/react-icons@^1.3.0",
+    "bun add react-parallax@^3.5.1"
+];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
