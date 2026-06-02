@@ -8,6 +8,13 @@ export interface RemoteMachine {
   status: 'online' | 'offline' | 'connecting';
   lastConnected?: string;
 }
+export interface RemoteSession {
+  id: string;
+  machineId: string;
+  startTime: string;
+  status: 'connecting' | 'active' | 'closed';
+  latency: number;
+}
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;

@@ -1,33 +1,57 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, LayoutGrid, Monitor, ShieldCheck, Activity } from 'lucide-react';
+import { Plus, LayoutGrid, Monitor, ShieldCheck, Activity, Loader2 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { MachineCard } from '@/components/MachineCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
-import type { RemoteMachine, ApiResponse } from '@shared/types';
+import type { RemoteMachine, RemoteSession, ApiResponse } from '@shared/types';
 import { toast } from 'sonner';
 export function HomePage() {
   const [machines, setMachines] = useState<RemoteMachine[]>([]);
+  const [sessions, setSessions] = useState<RemoteSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const navigate = useNavigate();
+  const fetchData = async () => {
+    try {
+      const [mRes, sRes] = await Promise.all([
+        fetch('/api/machines'),
+        fetch('/api/sessions')
+      ]);
+      const mJson = await mRes.json() as ApiResponse<RemoteMachine[]>;
+      const sJson = await sRes.json() as ApiResponse<RemoteSession[]>;
+      if (mJson.success && mJson.data) setMachines(mJson.data);
+      if (sJson.success && sJson.data) setSessions(sJson.data);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      toast.error('Network Error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchMachines = async () => {
-      try {
-        const res = await fetch('/api/machines');
-        const json = await res.json() as ApiResponse<RemoteMachine[]>;
-        if (json.success && json.data) {
-          setMachines(json.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch machines:', error);
-        toast.error('Network Error', { description: 'Could not connect to the gateway.' });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchMachines();
+    fetchData();
   }, []);
+  const handleConnect = async (machineId: string) => {
+    setIsConnecting(machineId);
+    try {
+      const res = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ machineId }),
+      });
+      const json = await res.json() as ApiResponse<RemoteSession>;
+      if (json.success && json.data) {
+        toast.success("Tunnel Handshake Initiated");
+        navigate(`/sessions/${json.data.id}`);
+      }
+    } catch (e) {
+      toast.error("Failed to start tunnel");
+    } finally {
+      setIsConnecting(null);
+    }
+  };
   return (
     <AppLayout>
       <div className="space-y-12">
@@ -38,11 +62,11 @@ export function HomePage() {
               <ShieldCheck className="w-4 h-4" />
               Secure Edge Connectivity
             </div>
-            <h1 className="text-display tracking-tight text-foreground">
+            <h1 className="text-display tracking-tight text-foreground text-4xl md:text-5xl font-bold">
               Your <span className="text-cf-blue-600">Gateways</span> to Every Machine.
             </h1>
             <p className="text-lg text-muted-foreground text-pretty">
-              Securely connect to your remote workstations through Cloudflare's global network. 
+              Securely connect to your remote workstations through Cloudflare's global network.
               Low latency, encrypted by default.
             </p>
             <div className="flex gap-4 pt-4">
@@ -51,13 +75,12 @@ export function HomePage() {
               </Button>
             </div>
           </div>
-          {/* Abstract visual background element */}
           <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-cf-blue-500/5 to-transparent hidden lg:block" />
         </div>
         {/* Status Dashboard Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { label: 'Active Sessions', value: '0', icon: Activity, color: 'text-cf-blue-600' },
+            { label: 'Active Sessions', value: sessions.length.toString(), icon: Activity, color: 'text-cf-blue-600' },
             { label: 'Remote Nodes', value: machines.length.toString(), icon: Monitor, color: 'text-cf-blue-600' },
             { label: 'Total Tunnels', value: machines.filter(m => m.status === 'online').length.toString(), icon: ShieldCheck, color: 'text-green-600' },
           ].map((stat, i) => (
@@ -89,7 +112,12 @@ export function HomePage() {
           ) : machines.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {machines.map((machine) => (
-                <MachineCard key={machine.id} machine={machine} />
+                <MachineCard 
+                  key={machine.id} 
+                  machine={machine} 
+                  onConnect={() => handleConnect(machine.id)}
+                  isConnecting={isConnecting === machine.id}
+                />
               ))}
             </div>
           ) : (

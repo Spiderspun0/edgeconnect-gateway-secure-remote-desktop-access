@@ -13,6 +13,7 @@ import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import '@/index.css'
 import { HomePage } from '@/pages/HomePage'
 import { MachineManagementPage } from '@/pages/MachineManagementPage'
+import { ConnectionViewerPage } from '@/pages/ConnectionViewerPage'
 import { Toaster } from '@/components/ui/sonner'
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
@@ -29,6 +30,11 @@ const router = createBrowserRouter([
   {
     path: "/machines/:id/edit",
     element: <MachineManagementPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/sessions/:sessionId",
+    element: <ConnectionViewerPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);

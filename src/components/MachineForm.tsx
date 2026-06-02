@@ -4,18 +4,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { RemoteMachine } from '@shared/types';
 import { v4 as uuidv4 } from 'uuid';
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   host: z.string().min(1, "Host address is required"),
   port: z.coerce.number().int().min(1).max(65535),
-  authMethod: z.enum(['token', 'password']),
+  authMethod: z.enum(['token', 'password'] as const),
   authToken: z.string().min(1, "Authentication detail is required"),
 });
+type FormValues = z.infer<typeof formSchema>;
 interface MachineFormProps {
   initialData?: RemoteMachine;
   onSubmit: (data: RemoteMachine) => Promise<void>;
@@ -23,17 +23,17 @@ interface MachineFormProps {
   isLoading?: boolean;
 }
 export function MachineForm({ initialData, onSubmit, onCancel, isLoading }: MachineFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      name: '',
-      host: '',
-      port: 3389,
-      authMethod: 'token',
-      authToken: '',
+    defaultValues: {
+      name: initialData?.name || '',
+      host: initialData?.host || '',
+      port: initialData?.port || 3389,
+      authMethod: initialData?.authMethod || 'token',
+      authToken: initialData?.authToken || '',
     },
   });
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: FormValues) => {
     await onSubmit({
       ...values,
       id: initialData?.id || uuidv4(),
