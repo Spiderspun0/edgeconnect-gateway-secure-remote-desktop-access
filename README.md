@@ -1,6 +1,6 @@
 # EdgeConnect Gateway
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Spiderspun0/edgeconnect-gateway-secure-remote-desktop-access)
 
 A production-ready full-stack application template built for Cloudflare Workers, featuring a modern React frontend with Hono-powered API routes and Durable Objects for persistent state.
 
@@ -105,7 +105,7 @@ bun run cf-typegen
 
 This project is optimized for Cloudflare Workers deployment.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Spiderspun0/edgeconnect-gateway-secure-remote-desktop-access)
 
 ### Manual Deployment
 
